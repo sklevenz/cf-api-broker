@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -9,9 +8,10 @@ import (
 )
 
 func main() {
-	fmt.Println("-- start application")
+	log.Println("start application")
 
-	server := http.HandlerFunc(server.BrokerServer)
+	server := server.NewBrokerServer()
+
 	if err := http.ListenAndServe(":5000", server); err != nil {
 		log.Fatalf("could not listen on port 5000 %v", err)
 	}
