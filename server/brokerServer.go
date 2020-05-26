@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,19 +13,23 @@ const (
 	brokerAPIVersion string = "2.14"
 )
 
-// NewBrokerServer creates a new OSB broker server and configures handlers and routes
-func NewBrokerServer() *mux.Router {
-	broker := mux.NewRouter().StrictSlash(true)
+// NewBrokerServer implements static routes for serving a home page and the routes
+// defined by OSB v2.0 API
+func NewBrokerServer(staticDir string) http.Handler {
+	router := mux.NewRouter().StrictSlash(true)
 
-	broker.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static")))).Name("static")
-	//broker.Handle("/", http.FileServer(http.Dir(staticPath))).Name("home").Methods(http.MethodGet)
-	broker.HandleFunc("/", homeHandler).Name("home").Methods(http.MethodGet)
-	broker.HandleFunc("/v2/catalog/", catalogHandler).Name("catalog").Methods(http.MethodGet)
+	v2Router := router.PathPrefix("/v2/").Subrouter()
+	v2Router.HandleFunc("/catalog/", catalogHandler).Name("v2.catalog").Methods(http.MethodGet)
 
-	broker.Use(logHandler)
-	broker.Use(headerHandler)
+	v2Router.Use(headerHandler)
 
-	return broker
+	router.HandleFunc("/health/", healthHandler).Name("health").Methods(http.MethodGet)
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).Name("static").Methods(http.MethodGet)
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir))).Name("home").Methods(http.MethodGet)
+
+	router.Use(logHandler)
+
+	return router
 }
 
 func logHandler(next http.Handler) http.Handler {
@@ -41,11 +46,10 @@ func headerHandler(next http.Handler) http.Handler {
 	})
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fs := http.FileServer(http.Dir("./static"))
-	fs.ServeHTTP(w, r)
-}
-
 func catalogHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "catalog")
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 }
