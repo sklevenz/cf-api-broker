@@ -15,11 +15,12 @@ def build():
     print ("-- fmt broker")
     os.system("go fmt ./...")
     print("-- build broker")
-    os.system("go build -v ./...")
+    print("go build " + ldflags() + " -v ./...")
+    os.system("go build " + ldflags() + " -v ./...")
 
 def run():
     print ("-- run broker")
-    os.system("go run brokerApp.go")
+    os.system("go run  " + ldflags() + " brokerApp.go")
 
 def dispatcher(cmd):
    dispatcher={
@@ -29,6 +30,18 @@ def dispatcher(cmd):
    }
    return dispatcher.get(cmd)
  
+def ldflags():
+    dirtyStream = os.popen('git diff --quiet || echo dirty')
+    dirty = dirtyStream.read()
+    if dirty == "":
+      commitStream = os.popen('git rev-parse HEAD')
+      commit = commitStream.read()
+    else:
+      commit = dirty
+
+    # TDOD: version (consider goreleaser) 
+    return F"-ldflags=\"-X 'main.Version=dev' -X 'main.Commit={commit}'\""
+
 def main():
   parser = argparse.ArgumentParser(description="Make tool for cloud foundry api broker", epilog="(c) 2020 by KLÄFF-Soft)")
   parser.add_help=True

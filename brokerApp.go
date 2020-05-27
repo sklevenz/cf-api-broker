@@ -11,12 +11,23 @@ const (
 	staticDir string = "./static"
 )
 
+var (
+	// Version set by go build via -ldflags "'-X main.Version=1.0'"
+	Version string = "n/a"
+	// Commit set by go build via -ldflags "'-X main.Commit=123'"
+	Commit string = "n/a"
+)
+
 func main() {
 	log.Println("start application")
 
-	server := server.NewBrokerServer(staticDir)
+	log.Printf("version %v", Version)
+	log.Printf("commit %v", Commit)
 
-	if err := http.ListenAndServe(":5000", server); err != nil {
+	server.SetBuildVersion(Version, Commit)
+	brokerServer := server.NewBrokerServer(staticDir)
+
+	if err := http.ListenAndServe(":5000", brokerServer); err != nil {
 		log.Fatalf("could not listen on port 5000 %v", err)
 	}
 }

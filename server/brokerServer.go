@@ -1,16 +1,27 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
 
 const (
-	brokerAPIVersion string = "2.14"
+	supportedAPIVersionValue string = "2.14"
+
+	headerAPIVersion            string = "X-Broker-API-Version"
+	headerAPIOrginatingIdentity string = "X-Broker-API-Originating-Identity"
+	headerAPIRequestIdentity    string = "X-Broker-API-Request-Identity"
+
+	headerContentType string = "Content-Type"
+
+	contentTypeCSS  string = "text/css; charset=utf-8"
+	contentTypeHTML string = "text/html; charset=utf-8"
+	contentTypeTEXT string = "text/plain; charset=utf-8"
+	contentTypeJSON string = "application/json; charset=utf-8"
 )
 
 // NewBrokerServer implements static routes for serving a home page and the routes
@@ -20,36 +31,46 @@ func NewBrokerServer(staticDir string) http.Handler {
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
 	v2Router.HandleFunc("/catalog/", catalogHandler).Name("v2.catalog").Methods(http.MethodGet)
+	v2Router.Use(apiVersionHandler)
 
-	v2Router.Use(headerHandler)
-
+	router.HandleFunc("/version/", versionHandler).Name("version").Methods(http.MethodGet)
 	router.HandleFunc("/health/", healthHandler).Name("health").Methods(http.MethodGet)
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).Name("static").Methods(http.MethodGet)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir))).Name("home").Methods(http.MethodGet)
-
 	router.Use(logHandler)
 
 	return router
 }
 
-func logHandler(next http.Handler) http.Handler {
+func apiVersionHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%v %v", r.Method, r.RequestURI)
-		next.ServeHTTP(w, r)
-	})
-}
+		supportedAPIVersion := strings.Split(supportedAPIVersionValue, ".")[0]
+		requestedAPIVersionValue := strings.Split(r.Header.Get(headerAPIVersion), ".")[0]
 
-func headerHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Broker-API-Version", brokerAPIVersion)
+		if requestedAPIVersionValue == "" {
+			err := fmt.Errorf("HTTP Status: (%v) - mandatory request header %v not set", http.StatusPreconditionFailed, headerAPIVersion)
+			log.Printf("Error: %v", err)
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Header().Set(headerContentType, contentTypeTEXT)
+			fmt.Fprintf(w, "Error: %v", err)
+			return
+		}
+
+		requestedAPIVersion := strings.Split(requestedAPIVersionValue, ".")[0]
+		if supportedAPIVersion != requestedAPIVersion {
+			err := fmt.Errorf("HTTP Stauts: (%v) - requested API version is %v but supported API version is %v", http.StatusPreconditionFailed, requestedAPIVersionValue, supportedAPIVersionValue)
+			log.Printf("Error: %v", err)
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Header().Set(headerContentType, contentTypeTEXT)
+			fmt.Fprintf(w, "Error: %v", err)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
 
 func catalogHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "catalog")
-}
-
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	w.Header().Set(headerContentType, contentTypeJSON)
+	fmt.Fprint(w, "{\"catalog\": true}")
 }
