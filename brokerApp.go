@@ -25,7 +25,7 @@ func main() {
 	log.Printf("commit %v", Commit)
 
 	server.SetBuildVersion(Version, Commit)
-	brokerServer := server.NewBrokerServer(staticDir)
+	brokerServer := server.NewRouter(staticDir)
 
 	if err := http.ListenAndServe(":5000", brokerServer); err != nil {
 		log.Fatalf("could not listen on port 5000 %v", err)
