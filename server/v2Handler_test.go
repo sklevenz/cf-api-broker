@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestNoApiVersion(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
 	response := httptest.NewRecorder()
@@ -74,4 +73,3 @@ func TestCatalogHandler(t *testing.T) {
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 }
-

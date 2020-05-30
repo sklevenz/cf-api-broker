@@ -22,11 +22,27 @@ def run():
     print ("-- run broker")
     os.system("go run  " + ldflags() + " brokerApp.go")
 
+def generate():
+    print ("-- generate broker")
+
+    os.system("rm -rf ./gen ./openapi")
+    os.system("mkdir -p ./gen ./openapi")
+    os.system("wget https://raw.githubusercontent.com/openservicebrokerapi/servicebroker/master/swagger.yaml -O \"./gen/swagger.yaml\"")
+    os.system("openapi-generator validate -i ./gen/swagger.yaml")
+    os.system("openapi-generator generate -i ./gen/swagger.yaml -g go-server -o ./gen")
+    os.system("cp ./gen/go/model_* ./openapi")
+
+def release():
+    print ("-- release broker")
+    print ("-- tbd")
+
 def dispatcher(cmd):
    dispatcher={
        'build': build,
        "run": run,
        "test": test,
+       "generate": generate,
+       "release": release,
    }
    return dispatcher.get(cmd)
  
@@ -45,7 +61,7 @@ def ldflags():
 def main():
   parser = argparse.ArgumentParser(description="Make tool for cloud foundry api broker", epilog="(c) 2020 by KLÄFF-Soft)")
   parser.add_help=True
-  parser.add_argument("command", nargs='?', choices=['build', 'run', 'test'], help="commands to execute")
+  parser.add_argument("command", nargs='?', choices=['build', 'run', 'test', 'generate', 'release'], help="commands to execute")
  
   args = parser.parse_args()
   func = dispatcher(args.command)

@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -37,7 +38,10 @@ func NewRouter(staticDir string) http.Handler {
 
 func logHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request: %v", r)
+		log.Printf("RAW Request Object: %v", r)
+
+		start := time.Now()
 		next.ServeHTTP(w, r)
+		log.Printf("-%v -%v -%v -%v", r.Method, r.RequestURI, "XXX", time.Since(start))
 	})
 }
