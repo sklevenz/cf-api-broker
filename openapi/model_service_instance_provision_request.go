@@ -11,7 +11,6 @@
 package openapi
 
 type ServiceInstanceProvisionRequest struct {
-
 	ServiceId string `json:"service_id"`
 
 	PlanId string `json:"plan_id"`

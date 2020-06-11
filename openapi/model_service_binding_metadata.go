@@ -11,6 +11,5 @@
 package openapi
 
 type ServiceBindingMetadata struct {
-
 	ExpiresAt string `json:"expires_at,omitempty"`
 }

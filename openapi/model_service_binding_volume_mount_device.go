@@ -11,7 +11,6 @@
 package openapi
 
 type ServiceBindingVolumeMountDevice struct {
-
 	VolumeId string `json:"volume_id"`
 
 	MountConfig map[string]interface{} `json:"mount_config,omitempty"`

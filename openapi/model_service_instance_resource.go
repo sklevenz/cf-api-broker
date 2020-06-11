@@ -11,7 +11,6 @@
 package openapi
 
 type ServiceInstanceResource struct {
-
 	ServiceId string `json:"service_id,omitempty"`
 
 	PlanId string `json:"plan_id,omitempty"`

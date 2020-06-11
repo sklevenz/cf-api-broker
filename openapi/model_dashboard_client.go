@@ -11,7 +11,6 @@
 package openapi
 
 type DashboardClient struct {
-
 	Id string `json:"id"`
 
 	Secret string `json:"secret"`

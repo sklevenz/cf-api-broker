@@ -11,7 +11,6 @@
 package openapi
 
 type Service struct {
-
 	Name string `json:"name"`
 
 	Id string `json:"id"`

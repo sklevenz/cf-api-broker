@@ -11,6 +11,5 @@
 package openapi
 
 type AsyncOperation struct {
-
 	Operation string `json:"operation,omitempty"`
 }

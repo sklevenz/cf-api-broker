@@ -11,6 +11,5 @@
 package openapi
 
 type Catalog struct {
-
 	Services []Service `json:"services,omitempty"`
 }

@@ -11,7 +11,6 @@
 package openapi
 
 type ServiceBindingResource struct {
-
 	Metadata ServiceBindingMetadata `json:"metadata,omitempty"`
 
 	Credentials map[string]interface{} `json:"credentials,omitempty"`

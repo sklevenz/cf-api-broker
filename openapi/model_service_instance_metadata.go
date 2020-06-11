@@ -11,6 +11,5 @@
 package openapi
 
 type ServiceInstanceMetadata struct {
-
 	Labels map[string]interface{} `json:"labels,omitempty"`
 }
