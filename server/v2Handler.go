@@ -1,10 +1,14 @@
 package server
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/sklevenz/cf-api-broker/openapi"
 )
 
 const (
@@ -15,6 +19,61 @@ const (
 	headerAPIRequestIdentity    string = "X-Broker-API-Request-Identity"
 )
 
+type userIDType struct {
+	UserID string `json:"user_id"`
+}
+
+type originatingIdentityType struct {
+	Platform string     `json:"platform"`
+	UserID   userIDType `json:"user_id_object"`
+}
+
+func handleError(w http.ResponseWriter, code int, err error) {
+	output, _ := json.Marshal(&openapi.Error{
+		Error:       http.StatusText(code),
+		Description: err.Error(),
+	})
+
+	w.Header().Set(headerContentType, contentTypeJSON)
+	w.WriteHeader(code)
+	w.Write(output)
+}
+
+func parseOriginatingIdentityHeader(value string) (*originatingIdentityType, error) {
+	value = strings.TrimSpace(value)
+	values := strings.Split(value, " ")
+
+	originatingIdentity := &originatingIdentityType{}
+	originatingIdentity.Platform = values[0]
+
+	encoded, err := base64.StdEncoding.DecodeString(values[1])
+
+	if err != nil {
+		log.Printf("Error in Originating Identity Header, user_id not base64 encoded: %v", value)
+		return nil, err
+	}
+
+	json.Unmarshal([]byte(encoded), &originatingIdentity.UserID)
+
+	return originatingIdentity, nil
+}
+
+func originatingIdentityLogHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headerValue := r.Header.Get(headerAPIOrginatingIdentity)
+		if headerValue != "" {
+			originatingIdentity, err := parseOriginatingIdentityHeader(headerValue)
+			if err == nil {
+				log.Printf("Originating Identity: %v", originatingIdentity)
+			}
+		} else {
+			log.Printf("Header %v not set", headerAPIOrginatingIdentity)
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func apiVersionHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		supportedAPIVersion := strings.Split(supportedAPIVersionValue, ".")[0]
@@ -23,19 +82,15 @@ func apiVersionHandler(next http.Handler) http.Handler {
 		if requestedAPIVersionValue == "" {
 			err := fmt.Errorf("HTTP Status: (%v) - mandatory request header %v not set", http.StatusPreconditionFailed, headerAPIVersion)
 			log.Printf("Error: %v", err)
-			w.WriteHeader(http.StatusPreconditionFailed)
-			w.Header().Set(headerContentType, contentTypeTEXT)
-			fmt.Fprintf(w, "Error: %v", err)
+			handleError(w, http.StatusPreconditionFailed, err)
 			return
 		}
 
 		requestedAPIVersion := strings.Split(requestedAPIVersionValue, ".")[0]
 		if supportedAPIVersion != requestedAPIVersion {
-			err := fmt.Errorf("HTTP Stauts: (%v) - requested API version is %v but supported API version is %v", http.StatusPreconditionFailed, requestedAPIVersionValue, supportedAPIVersionValue)
+			err := fmt.Errorf("HTTP Status: (%v) - requested API version is %v but supported API version is %v", http.StatusPreconditionFailed, r.Header.Get(headerAPIVersion), supportedAPIVersionValue)
 			log.Printf("Error: %v", err)
-			w.WriteHeader(http.StatusPreconditionFailed)
-			w.Header().Set(headerContentType, contentTypeTEXT)
-			fmt.Fprintf(w, "Error: %v", err)
+			handleError(w, http.StatusPreconditionFailed, err)
 			return
 		}
 

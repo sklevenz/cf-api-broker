@@ -31,6 +31,7 @@ def generate():
     os.system("openapi-generator validate -i ./gen/swagger.yaml")
     os.system("openapi-generator generate -i ./gen/swagger.yaml -g go-server -o ./gen")
     os.system("cp ./gen/go/model_* ./openapi")
+    os.system("go fmt ./openapi")
 
 def release():
     print ("-- release broker")

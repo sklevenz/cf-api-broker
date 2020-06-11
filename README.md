@@ -1,6 +1,6 @@
 # Cloud Foundry API Broker
 
-This is an OSB Service Broker [1] for the Cloud Foundry [2] API endpoint.  
+This is an [OSB Service Broker](https://www.openservicebrokerapi.org/) for the [Cloud Foundry](https://www.cloudfoundry.org/) API endpoint.  
 
 ## Build and Development Process
 
@@ -25,7 +25,3 @@ This project uses a Python build script. For help call ´./bin/make.sh help´.
   
 For OSX: `brew install wget openapi-generator goreleaser`
 
-
-
-[1] https://www.openservicebrokerapi.org/
-[2] https://www.cloudfoundry.org/

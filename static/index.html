@@ -12,7 +12,10 @@
   <ul>
     <li><a href="/health/">/health</a></li>
     <li><a href="/version/">/version</a></li><p>
-    <li>curl -sS -X GET -H 'X-Broker-API-Version: 2.0' http://localhost:5000/v2/catalog/</a></li>
+    <li><p>curl -sS -X GET \<br>
+    -H 'X-Broker-API-Version: 2.0' \<br>
+    -H 'X-Broker-API-Originating-Identity: cloudfoundry eyANCiAgInVzZXJfaWQiOiAiNjgzZWE3NDgtMzA5Mi00ZmY0LWI2NTYtMzljYWNjNGQ1MzYwIg0KfQ==' \<br>
+    http://localhost:5000/v2/catalog/</a></p></li>
   </ul>
 
   <img alt="CF Logo" height="100" src="static/img/CFF_Logo_vertical_RGB.png" />

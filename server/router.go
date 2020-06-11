@@ -24,6 +24,7 @@ func NewRouter(staticDir string) http.Handler {
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
 	v2Router.Use(apiVersionHandler)
+	v2Router.Use(originatingIdentityLogHandler)
 	v2Router.HandleFunc("/catalog/", catalogHandler).Name("v2.catalog").Methods(http.MethodGet)
 
 	router.HandleFunc("/version/", versionHandler).Name("version").Methods(http.MethodGet)
@@ -42,6 +43,6 @@ func logHandler(next http.Handler) http.Handler {
 
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		log.Printf("-%v -%v -%v -%v", r.Method, r.RequestURI, "XXX", time.Since(start))
+		log.Printf("-%v -%v -%v", r.Method, r.RequestURI, time.Since(start))
 	})
 }
