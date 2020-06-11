@@ -24,6 +24,7 @@ func NewRouter(staticDir string) http.Handler {
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
 	v2Router.Use(apiVersionHandler)
+	v2Router.Use(requestIdentityLogHandler)
 	v2Router.Use(originatingIdentityLogHandler)
 	v2Router.HandleFunc("/catalog/", catalogHandler).Name("v2.catalog").Methods(http.MethodGet)
 

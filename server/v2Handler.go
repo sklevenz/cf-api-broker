@@ -74,6 +74,19 @@ func originatingIdentityLogHandler(next http.Handler) http.Handler {
 	})
 }
 
+func requestIdentityLogHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headerValue := r.Header.Get(headerAPIRequestIdentity)
+		if headerValue != "" {
+			log.Printf("Request Identity: %v", headerValue)
+		} else {
+			log.Printf("Header %v not set", headerAPIRequestIdentity)
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func apiVersionHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		supportedAPIVersion := strings.Split(supportedAPIVersionValue, ".")[0]

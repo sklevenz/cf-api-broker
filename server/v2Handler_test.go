@@ -77,7 +77,7 @@ func TestCatalogHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 }
 
-func TestOriginatingIdentity(t *testing.T) {
+func TestAPIOriginatingIdentity(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
 	response := httptest.NewRecorder()
 
@@ -97,5 +97,27 @@ func TestOriginatingIdentity(t *testing.T) {
 
 	assert.Contains(t, buf.String(), "cloudfoundry")
 	assert.Contains(t, buf.String(), "683ea748-3092-4ff4-b656-39cacc4d5360")
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+}
+
+func TestAPIRequestIdentity(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	response := httptest.NewRecorder()
+
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	})
+
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer func() {
+		log.SetOutput(os.Stderr)
+	}()
+
+	request.Header.Set(headerAPIRequestIdentity, "e26cee84-6b38-4456-b34e-d1a9f002c956")
+
+	handler := requestIdentityLogHandler(testHandler)
+	handler.ServeHTTP(response, request)
+
+	assert.Contains(t, buf.String(), "e26cee84-6b38-4456-b34e-d1a9f002c956")
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 }
