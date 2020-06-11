@@ -28,7 +28,16 @@ type originatingIdentityType struct {
 	UserID   userIDType `json:"user_id_object"`
 }
 
-func handleError(w http.ResponseWriter, code int, err error) {
+func handleOSBError(w http.ResponseWriter, code int, err openapi.Error) {
+	output, _ := json.Marshal(err)
+
+	w.Header().Set(headerContentType, contentTypeJSON)
+	w.WriteHeader(code)
+	w.Write(output)
+}
+
+func handleHttpError(w http.ResponseWriter, code int, err error) {
+
 	output, _ := json.Marshal(&openapi.Error{
 		Error:       http.StatusText(code),
 		Description: err.Error(),
@@ -95,7 +104,7 @@ func apiVersionHandler(next http.Handler) http.Handler {
 		if requestedAPIVersionValue == "" {
 			err := fmt.Errorf("HTTP Status: (%v) - mandatory request header %v not set", http.StatusPreconditionFailed, headerAPIVersion)
 			log.Printf("Error: %v", err)
-			handleError(w, http.StatusPreconditionFailed, err)
+			handleHttpError(w, http.StatusPreconditionFailed, err)
 			return
 		}
 
@@ -103,7 +112,7 @@ func apiVersionHandler(next http.Handler) http.Handler {
 		if supportedAPIVersion != requestedAPIVersion {
 			err := fmt.Errorf("HTTP Status: (%v) - requested API version is %v but supported API version is %v", http.StatusPreconditionFailed, r.Header.Get(headerAPIVersion), supportedAPIVersionValue)
 			log.Printf("Error: %v", err)
-			handleError(w, http.StatusPreconditionFailed, err)
+			handleHttpError(w, http.StatusPreconditionFailed, err)
 			return
 		}
 
