@@ -17,9 +17,15 @@ const (
 	contentTypeJSON string = "application/json; charset=utf-8"
 )
 
+var (
+	configPath string
+)
+
 // NewRouter implements static routes for serving a home page and the routes
 // defined by OSB v2.0 API
-func NewRouter(staticDir string) http.Handler {
+func NewRouter(staticDir string, configPath string) http.Handler {
+	configPath = configPath
+
 	router := mux.NewRouter().StrictSlash(true)
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
