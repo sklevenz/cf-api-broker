@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/sklevenz/cf-api-broker/data"
 	"github.com/sklevenz/cf-api-broker/openapi"
 )
 
@@ -36,7 +38,7 @@ func handleOSBError(w http.ResponseWriter, code int, err openapi.Error) {
 	w.Write(output)
 }
 
-func handleHttpError(w http.ResponseWriter, code int, err error) {
+func handleHTTPError(w http.ResponseWriter, code int, err error) {
 
 	output, _ := json.Marshal(&openapi.Error{
 		Error:       http.StatusText(code),
@@ -104,7 +106,7 @@ func apiVersionHandler(next http.Handler) http.Handler {
 		if requestedAPIVersionValue == "" {
 			err := fmt.Errorf("HTTP Status: (%v) - mandatory request header %v not set", http.StatusPreconditionFailed, headerAPIVersion)
 			log.Printf("Error: %v", err)
-			handleHttpError(w, http.StatusPreconditionFailed, err)
+			handleHTTPError(w, http.StatusPreconditionFailed, err)
 			return
 		}
 
@@ -112,7 +114,7 @@ func apiVersionHandler(next http.Handler) http.Handler {
 		if supportedAPIVersion != requestedAPIVersion {
 			err := fmt.Errorf("HTTP Status: (%v) - requested API version is %v but supported API version is %v", http.StatusPreconditionFailed, r.Header.Get(headerAPIVersion), supportedAPIVersionValue)
 			log.Printf("Error: %v", err)
-			handleHttpError(w, http.StatusPreconditionFailed, err)
+			handleHTTPError(w, http.StatusPreconditionFailed, err)
 			return
 		}
 
@@ -120,7 +122,37 @@ func apiVersionHandler(next http.Handler) http.Handler {
 	})
 }
 
+func etagHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		dat, err := data.NewCloudFoundryMetaData(configPath)
+
+		if err != nil {
+			handleHTTPError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.Header().Set(headerETag, fmt.Sprintf("W/\"%v\"", dat.GetLastModifiedHash()))
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func catalogHandler(w http.ResponseWriter, r *http.Request) {
+	dat, err := data.NewCloudFoundryMetaData(configPath)
+
+	if err != nil {
+		handleHTTPError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	js, err := json.Marshal(dat)
+	if err != nil {
+		handleHTTPError(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	w.Header().Set(headerContentType, contentTypeJSON)
-	fmt.Fprint(w, "{\"catalog\": true}")
+	reader := bytes.NewReader(js)
+	http.ServeContent(w, r, "xxx", dat.GetLastModified(), reader)
 }

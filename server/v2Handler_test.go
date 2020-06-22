@@ -3,12 +3,14 @@ package server
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/sklevenz/cf-api-broker/data"
 	"github.com/sklevenz/cf-api-broker/openapi"
 	"github.com/stretchr/testify/assert"
 )
@@ -67,18 +69,6 @@ func TestRedirect(t *testing.T) {
 	assert.Equal(t, http.StatusMovedPermanently, response.Result().StatusCode)
 }
 
-func TestCatalogHandler(t *testing.T) {
-	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
-	response := httptest.NewRecorder()
-
-	request.Header.Set(headerAPIVersion, "2.2")
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
-
-	assert.Equal(t, "{\"catalog\": true}", response.Body.String())
-	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
-	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
-}
-
 func TestAPIOriginatingIdentity(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
 	response := httptest.NewRecorder()
@@ -129,7 +119,7 @@ func TestHttpErrorHandler(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handleHttpError(w, http.StatusInternalServerError, errors.New("blabla"))
+		handleHTTPError(w, http.StatusInternalServerError, errors.New("blabla"))
 	})
 
 	handler := requestIdentityLogHandler(testHandler)
@@ -164,4 +154,23 @@ func TestOSBErrorHandler(t *testing.T) {
 	assert.Contains(t, response.Body.String(), "blabla")
 	assert.Contains(t, response.Body.String(), "instance_usable")
 	assert.Contains(t, response.Body.String(), "instance_usable")
+}
+
+func TestCatalogHandler(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	response := httptest.NewRecorder()
+
+	dat, err := data.NewCloudFoundryMetaData(testConfigPath)
+	assert.NotNil(t, dat)
+	assert.Nil(t, err)
+
+	request.Header.Set(headerAPIVersion, "2.2")
+	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+
+	assert.Contains(t, response.Body.String(), "{\"CloudFoundries\":[{")
+
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
+	assert.Equal(t, fmt.Sprintf("W/\"%v\"", dat.GetLastModifiedHash()), response.Header().Get(headerETag))
+	assert.Equal(t, fmt.Sprintf("%v", dat.GetLastModified().UTC().Format(http.TimeFormat)), response.Header().Get(headerLastModified))
 }

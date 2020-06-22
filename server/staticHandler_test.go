@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	staticDir string = "./../static"
+	staticDir      string = "./../static"
 	testConfigPath string = "./../data/config.yaml"
 )
 

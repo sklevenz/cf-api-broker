@@ -2,6 +2,7 @@ package data
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -21,6 +22,8 @@ func TestReadConfig(t *testing.T) {
 	cfs, err := NewCloudFoundryMetaData("./config.yaml")
 	assert.NotNil(t, cfs)
 	assert.Nil(t, err)
+	assert.NotEqual(t, uint32(0), cfs.GetLastModifiedHash())
+	assert.NotEqual(t, time.Time{}, cfs.GetLastModified())
 }
 
 func TestHasChanged(t *testing.T) {

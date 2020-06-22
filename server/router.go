@@ -9,7 +9,9 @@ import (
 )
 
 const (
-	headerContentType string = "Content-Type"
+	headerContentType  string = "Content-Type"
+	headerETag         string = "ETag"
+	headerLastModified string = "Last-Modified"
 
 	contentTypeCSS  string = "text/css; charset=utf-8"
 	contentTypeHTML string = "text/html; charset=utf-8"
@@ -23,8 +25,8 @@ var (
 
 // NewRouter implements static routes for serving a home page and the routes
 // defined by OSB v2.0 API
-func NewRouter(staticDir string, configPath string) http.Handler {
-	configPath = configPath
+func NewRouter(staticDir string, cfgPath string) http.Handler {
+	configPath = cfgPath
 
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -32,14 +34,13 @@ func NewRouter(staticDir string, configPath string) http.Handler {
 	v2Router.Use(apiVersionHandler)
 	v2Router.Use(requestIdentityLogHandler)
 	v2Router.Use(originatingIdentityLogHandler)
+	v2Router.Use(etagHandler)
 	v2Router.HandleFunc("/catalog/", catalogHandler).Name("v2.catalog").Methods(http.MethodGet)
 
 	router.HandleFunc("/version/", versionHandler).Name("version").Methods(http.MethodGet)
 	router.HandleFunc("/health/", healthHandler).Name("health").Methods(http.MethodGet)
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).Name("static").Methods(http.MethodGet)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir))).Name("home").Methods(http.MethodGet)
-
-	router.Use(logHandler)
 
 	return router
 }

@@ -12,7 +12,7 @@ cloudfoundries:
   user: cf-eu10-001-admin
   password: abc
   labels:
-  - scaleout
+  - scaleout 
   - aws
 - name: "cf-eu10-002"
   apiURL: "https://api.cf.eu10-002.hana.ondemand.com"

@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,9 +27,10 @@ type CloudFoundryType struct {
 
 var (
 	mux                  sync.Mutex
-	lastModifiedHash     uint32 = 0
-	cachedCloudFoundries        = &CloudFoundriesType{}
-	cachedConfigPath     string = ""
+	lastModifiedHash     uint32    = 0
+	lastModified         time.Time = time.Time{}
+	cachedCloudFoundries           = &CloudFoundriesType{}
+	cachedConfigPath     string    = ""
 )
 
 // NewCloudFoundryMetaData Read cloud foundry data structure from YAML file.
@@ -54,6 +56,7 @@ func NewCloudFoundryMetaData(configPath string) (*CloudFoundriesType, error) {
 			lastModifiedHash = 0
 		}
 
+		lastModified = file.ModTime()
 		lastModifiedHash = hash(file.ModTime().String())
 
 		if err := yaml.Unmarshal(dat, &cachedCloudFoundries); err != nil {
@@ -104,4 +107,14 @@ func deepCopy(cf1 *CloudFoundriesType) (*CloudFoundriesType, error) {
 		return nil, err
 	}
 	return &cf2, nil
+}
+
+// GetLastModifiedHash returns a hash that can be used to build an ETag
+func (*CloudFoundriesType) GetLastModifiedHash() uint32 {
+	return lastModifiedHash
+}
+
+// GetLastModified returns last modified timestamp for setting Last-Modified header
+func (*CloudFoundriesType) GetLastModified() time.Time {
+	return lastModified
 }
