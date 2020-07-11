@@ -42,15 +42,18 @@ func NewRouter(staticDir string, cfgPath string) http.Handler {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).Name("static").Methods(http.MethodGet)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir))).Name("home").Methods(http.MethodGet)
 
+	router.Use(logHandler)
+
 	return router
 }
 
 func logHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("RAW Request Object: %v", r)
+		log.Println("--- new request ------------------------------------")
+		log.Printf("raw request object: %v", r)
 
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		log.Printf("-%v -%v -%v", r.Method, r.RequestURI, time.Since(start))
+		log.Printf("execution time: %v", time.Since(start))
 	})
 }
