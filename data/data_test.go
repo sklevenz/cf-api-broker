@@ -45,7 +45,7 @@ func TestDeepCopy(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, cfs1, cfs2)
-	cfs2.CloudFoundries[0].Password = "***********"
-	cfs2.CloudFoundries[0].Labels = []string{"232"}
+
+	cfs2.CloudFoundries["123"] = CloudFoundryType{}
 	assert.NotEqual(t, cfs1, cfs2)
 }

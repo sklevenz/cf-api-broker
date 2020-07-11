@@ -14,7 +14,7 @@ import (
 
 // CloudFoundriesType Store meta data for multiple cloud foundry instances
 type CloudFoundriesType struct {
-	CloudFoundries []CloudFoundryType
+	CloudFoundries map[string]CloudFoundryType
 }
 
 // CloudFoundryType Defines meta data of a single cloud foundry instance

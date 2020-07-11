@@ -146,7 +146,7 @@ func catalogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err := json.Marshal(dat)
+	js, err := json.Marshal(buildCatalog(dat))
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
 		return
@@ -155,4 +155,51 @@ func catalogHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(headerContentType, contentTypeJSON)
 	reader := bytes.NewReader(js)
 	http.ServeContent(w, r, "xxx", dat.GetLastModified(), reader)
+}
+
+func buildCatalog(dat *data.CloudFoundriesType) *openapi.Catalog {
+	catalog := openapi.Catalog{}
+	var services []openapi.Service
+	var service openapi.Service
+
+	service.Id = "cf"
+	service.Name = "cloudfoundry"
+	service.Description = "cloudfoundry api endpoint service"
+	service.Tags = append(service.Tags, "cf", "api", "cloudfoundry")
+	service.Requires = []string{}
+	service.Bindable = true
+	service.InstancesRetrievable = true
+	service.BindingsRetrievable = true
+	service.AllowContextUpdates = true
+	service.Metadata = map[string]interface{}{}
+	service.DashboardClient = openapi.DashboardClient{}
+	service.PlanUpdateable = true
+
+	plans := []openapi.Plan{}
+
+	for cfName, cf := range dat.CloudFoundries {
+
+		plan := openapi.Plan{}
+		plan.Id = cfName
+		plan.Name = cfName
+		plan.Description = "cloud foundry api instance"
+		plan.Metadata = make(map[string]interface{})
+		plan.Metadata[cfName] = cf
+		plan.Free = true
+		plan.Bindable = true
+		plan.PlanUpdateable = true
+		plan.Schemas = openapi.SchemasObject{}
+		plan.MaximumPollingDuration = 10
+		plan.MaintenanceInfo = openapi.MaintenanceInfo{}
+
+		plans = append(plans, plan)
+	}
+
+	service.Plans = plans
+	services = append(services, service)
+	catalog.Services = services
+
+	log.Printf("Catalog: %v", catalog)
+
+	return &catalog
 }

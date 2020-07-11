@@ -167,7 +167,7 @@ func TestCatalogHandler(t *testing.T) {
 	request.Header.Set(headerAPIVersion, "2.2")
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
 
-	assert.Contains(t, response.Body.String(), "{\"CloudFoundries\":[{")
+	assert.Contains(t, response.Body.String(), "loudfoundry api endpoint service")
 
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))

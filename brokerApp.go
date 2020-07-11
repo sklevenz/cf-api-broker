@@ -28,14 +28,17 @@ func init() {
 }
 
 func main() {
+	const port = 5000
 	flag.Parse()
-	log.Println("start application")
+	log.Printf("start application on port %v", port)
 
 	log.Printf("version %v", Version)
 	log.Printf("commit %v", Commit)
 
 	server.SetBuildVersion(Version, Commit)
 	brokerServer := server.NewRouter(staticDir, configPath)
+
+	log.Printf("call server: http://localhost:%v", port)
 
 	if err := http.ListenAndServe(":5000", brokerServer); err != nil {
 		log.Fatalf("could not listen on port 5000 %v", err)

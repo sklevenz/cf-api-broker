@@ -1,24 +1,24 @@
 ---
 cloudfoundries:
-- name: "cf-eu10"
-  apiURL: "https://api.cf.eu10.hana.ondemand.com"
-  user: cf-eu10-admin
-  password: abc
-  labels:
-  - master
-  - aws
-- name: "cf-eu10-001"
-  apiURL: "https://api.cf.eu10-001.hana.ondemand.com"
-  user: cf-eu10-001-admin
-  password: abc
-  labels:
-  - scaleout 
-  - aws
-- name: "cf-eu10-002"
-  apiURL: "https://api.cf.eu10-002.hana.ondemand.com"
-  user: cf-eu10-002
-  password: abc
-  labels:
-  - scaleout
-  - aws
+  cf-eu10:
+    apiURL: "https://api.cf.eu10.hana.ondemand.com"
+    user: admin-eu10
+    password: abc
+    labels:
+    - master
+    - aws
+  cf-eu10-001:
+    apiURL: "https://api.cf.eu10-001.hana.ondemand.com"
+    user: admin-eu10-001
+    password: abc
+    labels:
+    - scaleout 
+    - aws
+  cf-eu10-002: 
+    apiURL: "https://api.cf.eu10-002.hana.ondemand.com"
+    user: admin-eu10-002
+    password: abc
+    labels:
+    - scaleout
+    - aws
   
