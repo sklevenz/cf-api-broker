@@ -24,4 +24,6 @@ type ServiceBindingRequest struct {
 	BindResource ServiceBindingResourceObject `json:"bind_resource,omitempty"`
 
 	Parameters map[string]interface{} `json:"parameters,omitempty"`
+
+	PredecessorBindingId string `json:"predecessor_binding_id,omitempty"`
 }

@@ -34,6 +34,8 @@ type Service struct {
 
 	DashboardClient DashboardClient `json:"dashboard_client,omitempty"`
 
+	BindingRotatable bool `json:"binding_rotatable,omitempty"`
+
 	PlanUpdateable bool `json:"plan_updateable,omitempty"`
 
 	Plans []Plan `json:"plans"`

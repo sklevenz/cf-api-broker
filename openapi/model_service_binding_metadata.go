@@ -12,4 +12,6 @@ package openapi
 
 type ServiceBindingMetadata struct {
 	ExpiresAt string `json:"expires_at,omitempty"`
+
+	RenewBefore string `json:"renew_before,omitempty"`
 }
