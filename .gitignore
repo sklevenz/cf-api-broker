@@ -1,5 +1,6 @@
 broker
 cf-api-broker
 gen
+.vscode
 .idea
 

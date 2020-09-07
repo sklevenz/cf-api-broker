@@ -184,7 +184,7 @@ func buildCatalog(dat *data.CloudFoundriesType) *openapi.Catalog {
 		plan.Name = cfName
 		plan.Description = "cloud foundry api instance"
 		plan.Metadata = make(map[string]interface{})
-		plan.Metadata[cfName] = cf
+		plan.Metadata["labels"] = cf.Labels
 		plan.Free = true
 		plan.Bindable = true
 		plan.PlanUpdateable = true

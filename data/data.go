@@ -20,6 +20,7 @@ type CloudFoundriesType struct {
 // CloudFoundryType Defines meta data of a single cloud foundry instance
 type CloudFoundryType struct {
 	APIURL   string   `yaml:"apiURL"`
+	UAAURL   string   `yaml:"uaaURL"`
 	User     string   `yaml:"user"`
 	Password string   `yaml:"password"`
 	Labels   []string `yaml:"labels"`
