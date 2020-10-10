@@ -165,7 +165,7 @@ func buildCatalog(dat *data.CloudFoundriesType) *openapi.Catalog {
 	service.Id = "cf"
 	service.Name = "cloudfoundry"
 	service.Description = "cloudfoundry api endpoint service"
-	service.Tags = append(service.Tags, "cf", "api", "cloudfoundry")
+	service.Tags = append(service.Tags, "cf", "api", "cloudfoundry", "cloudcontroler")
 	service.Requires = []string{}
 	service.Bindable = true
 	service.InstancesRetrievable = true
@@ -177,23 +177,20 @@ func buildCatalog(dat *data.CloudFoundriesType) *openapi.Catalog {
 
 	plans := []openapi.Plan{}
 
-	for cfName, cf := range dat.CloudFoundries {
+	plan := openapi.Plan{}
+	plan.Id = "cloudcontroller"
+	plan.Name = "cloudcontroller"
+	plan.Description = "cloud foundry api instance"
+	plan.Metadata = make(map[string]interface{})
+	plan.Metadata["labels"] = []string{}
+	plan.Free = true
+	plan.Bindable = true
+	plan.PlanUpdateable = true
+	plan.Schemas = openapi.SchemasObject{}
+	plan.MaximumPollingDuration = 10
+	plan.MaintenanceInfo = openapi.MaintenanceInfo{}
 
-		plan := openapi.Plan{}
-		plan.Id = cfName
-		plan.Name = cfName
-		plan.Description = "cloud foundry api instance"
-		plan.Metadata = make(map[string]interface{})
-		plan.Metadata["labels"] = cf.Labels
-		plan.Free = true
-		plan.Bindable = true
-		plan.PlanUpdateable = true
-		plan.Schemas = openapi.SchemasObject{}
-		plan.MaximumPollingDuration = 10
-		plan.MaintenanceInfo = openapi.MaintenanceInfo{}
-
-		plans = append(plans, plan)
-	}
+	plans = append(plans, plan)
 
 	service.Plans = plans
 	services = append(services, service)
