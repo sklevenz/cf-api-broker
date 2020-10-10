@@ -1,4 +1,4 @@
-package data
+package config
 
 import (
 	"encoding/json"
@@ -12,32 +12,44 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// CloudFoundriesType Store meta data for multiple cloud foundry instances
-type CloudFoundriesType struct {
-	CloudFoundries map[string]CloudFoundryType
+// ConfigurationType Configuration data
+type ConfigurationType struct {
+	Broker         BrokerConfigType `yaml:"broker"`
+	CloudFoundries map[string]CloudFoundryConfigType
 }
 
-// CloudFoundryType Defines meta data of a single cloud foundry instance
-type CloudFoundryType struct {
+// BrokerConfigType Store broker config data
+type BrokerConfigType struct {
+	BasicAuth BasicAuthType `yaml:"basicauth"`
+}
+
+// BasicAuthType Store basic auth data
+type BasicAuthType struct {
+	UserName string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+// CloudFoundryConfigType Defines meta data of a single cloud foundry instance
+type CloudFoundryConfigType struct {
 	APIURL   string   `yaml:"apiURL"`
 	UAAURL   string   `yaml:"uaaURL"`
-	User     string   `yaml:"user"`
+	UserName string   `yaml:"username"`
 	Password string   `yaml:"password"`
 	Labels   []string `yaml:"labels"`
 }
 
 var (
-	mux                  sync.Mutex
-	lastModifiedHash     uint32    = 0
-	lastModified         time.Time = time.Time{}
-	cachedCloudFoundries           = &CloudFoundriesType{}
-	cachedConfigPath     string    = ""
+	mux              sync.Mutex
+	lastModifiedHash uint32    = 0
+	lastModified     time.Time = time.Time{}
+	cachedConfig               = &ConfigurationType{}
+	cachedConfigPath string    = ""
 )
 
-// NewCloudFoundryMetaData Read cloud foundry data structure from YAML file.
+// NewConfig Read cloud foundry data structure from YAML file.
 // The data is cached and file is read only in case of content was modified. Date will
 // be returned as a deep copy to avoid synchronization issues.
-func NewCloudFoundryMetaData(configPath string) (*CloudFoundriesType, error) {
+func NewConfig(configPath string) (*ConfigurationType, error) {
 
 	mux.Lock()
 	defer mux.Unlock()
@@ -60,18 +72,18 @@ func NewCloudFoundryMetaData(configPath string) (*CloudFoundriesType, error) {
 		lastModified = file.ModTime()
 		lastModifiedHash = hash(file.ModTime().String())
 
-		if err := yaml.Unmarshal(dat, &cachedCloudFoundries); err != nil {
+		if err := yaml.Unmarshal(dat, &cachedConfig); err != nil {
 			log.Printf("Error while parsing YAML file %v: %v", configPath, err)
 			return nil, err
 		}
-		log.Println(cachedCloudFoundries)
+		log.Println(cachedConfig)
 	} else {
 		log.Printf("Using cached data of file %v", configPath)
 	}
 
-	copiedCloudFoundries, err := deepCopy(cachedCloudFoundries)
+	copiedConfig, err := deepCopy(cachedConfig)
 
-	return copiedCloudFoundries, err
+	return copiedConfig, err
 }
 
 func hasChanged(configPath string) bool {
@@ -97,25 +109,25 @@ func hash(s string) uint32 {
 	return h.Sum32()
 }
 
-func deepCopy(cf1 *CloudFoundriesType) (*CloudFoundriesType, error) {
-	data, err := json.Marshal(cf1)
+func deepCopy(cfg1 *ConfigurationType) (*ConfigurationType, error) {
+	data, err := json.Marshal(cfg1)
 	if err != nil {
 		return nil, err
 	}
 
-	cf2 := CloudFoundriesType{}
-	if err := json.Unmarshal(data, &cf2); err != nil {
+	cfg2 := ConfigurationType{}
+	if err := json.Unmarshal(data, &cfg2); err != nil {
 		return nil, err
 	}
-	return &cf2, nil
+	return &cfg2, nil
 }
 
 // GetLastModifiedHash returns a hash that can be used to build an ETag
-func (*CloudFoundriesType) GetLastModifiedHash() uint32 {
+func (*ConfigurationType) GetLastModifiedHash() uint32 {
 	return lastModifiedHash
 }
 
 // GetLastModified returns last modified timestamp for setting Last-Modified header
-func (*CloudFoundriesType) GetLastModified() time.Time {
+func (*ConfigurationType) GetLastModified() time.Time {
 	return lastModified
 }

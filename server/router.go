@@ -32,6 +32,7 @@ func NewRouter(staticDir string, cfgPath string) http.Handler {
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
 	v2Router.Use(apiVersionHandler)
+	v2Router.Use(basicAuthHandler)
 	v2Router.Use(requestIdentityLogHandler)
 	v2Router.Use(originatingIdentityLogHandler)
 	v2Router.Use(etagHandler)

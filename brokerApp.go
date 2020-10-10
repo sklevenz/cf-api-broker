@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configPath, "f", "./data/config.yaml", "path to config file")
+	flag.StringVar(&configPath, "f", "./config/config.yaml", "path to config file")
 }
 
 func main() {

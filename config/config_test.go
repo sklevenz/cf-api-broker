@@ -1,4 +1,4 @@
-package data
+package config
 
 import (
 	"testing"
@@ -8,18 +8,18 @@ import (
 )
 
 func TestReadConfigWrongPath(t *testing.T) {
-	cfs, err := NewCloudFoundryMetaData("./xxx.yaml")
+	cfs, err := NewConfig("./xxx.yaml")
 	assert.Nil(t, cfs)
 	assert.NotNil(t, err)
 }
 func TestReadConfigWrongFile(t *testing.T) {
-	cfs, err := NewCloudFoundryMetaData("./data_test.go")
+	cfs, err := NewConfig("./data_test.go")
 	assert.Nil(t, cfs)
 	assert.NotNil(t, err)
 }
 
 func TestReadConfig(t *testing.T) {
-	cfs, err := NewCloudFoundryMetaData("./config.yaml")
+	cfs, err := NewConfig("./config.yaml")
 	assert.NotNil(t, cfs)
 	assert.Nil(t, err)
 	assert.NotEqual(t, uint32(0), cfs.GetLastModifiedHash())
@@ -27,7 +27,7 @@ func TestReadConfig(t *testing.T) {
 }
 
 func TestHasChanged(t *testing.T) {
-	cfs, err := NewCloudFoundryMetaData("./config.yaml")
+	cfs, err := NewConfig("./config.yaml")
 	assert.NotNil(t, cfs)
 	assert.Nil(t, err)
 	unchanged := hasChanged("./config.yaml")
@@ -37,15 +37,15 @@ func TestHasChanged(t *testing.T) {
 }
 
 func TestDeepCopy(t *testing.T) {
-	cfs1, err := NewCloudFoundryMetaData("./config.yaml")
-	assert.NotNil(t, cfs1)
+	cfg1, err := NewConfig("./config.yaml")
+	assert.NotNil(t, cfg1)
 	assert.Nil(t, err)
-	cfs2, err := NewCloudFoundryMetaData("./config.yaml")
-	assert.NotNil(t, cfs2)
+	cfg2, err := NewConfig("./config.yaml")
+	assert.NotNil(t, cfg2)
 	assert.Nil(t, err)
 
-	assert.Equal(t, cfs1, cfs2)
+	assert.Equal(t, cfg1, cfg2)
 
-	cfs2.CloudFoundries["123"] = CloudFoundryType{}
-	assert.NotEqual(t, cfs1, cfs2)
+	cfg2.Broker.BasicAuth.UserName = "bla"
+	assert.NotEqual(t, cfg1, cfg2)
 }

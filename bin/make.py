@@ -7,7 +7,7 @@ def test():
     print ("-- vet broker")
     os.system("go vet ./...")
     print ("-- test broker")
-    os.system("go test -v ./...")
+    os.system("go test ./...")
 
 def build():
     print ("-- clean broker")

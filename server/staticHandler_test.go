@@ -10,7 +10,7 @@ import (
 
 const (
 	staticDir      string = "./../static"
-	testConfigPath string = "./../data/config.yaml"
+	testConfigPath string = "./../config/config.yaml"
 )
 
 func TestHomeHandler(t *testing.T) {

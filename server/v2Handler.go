@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sklevenz/cf-api-broker/data"
+	"github.com/sklevenz/cf-api-broker/config"
 	"github.com/sklevenz/cf-api-broker/openapi"
 )
 
@@ -125,28 +125,44 @@ func apiVersionHandler(next http.Handler) http.Handler {
 func etagHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		dat, err := data.NewCloudFoundryMetaData(configPath)
+		cfg, err := config.NewConfig(configPath)
 
 		if err != nil {
 			handleHTTPError(w, http.StatusInternalServerError, err)
 			return
 		}
 
-		w.Header().Set(headerETag, fmt.Sprintf("W/\"%v\"", dat.GetLastModifiedHash()))
+		w.Header().Set(headerETag, fmt.Sprintf("W/\"%v\"", cfg.GetLastModifiedHash()))
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func basicAuthHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		cfg, err := config.NewConfig(configPath)
+
+		if err != nil {
+			handleHTTPError(w, http.StatusInternalServerError, err)
+			return
+		}
+		log.Printf("%v", cfg)
+		// handle basic auth
 
 		next.ServeHTTP(w, r)
 	})
 }
 
 func catalogHandler(w http.ResponseWriter, r *http.Request) {
-	dat, err := data.NewCloudFoundryMetaData(configPath)
+	cfg, err := config.NewConfig(configPath)
 
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	js, err := json.Marshal(buildCatalog(dat))
+	js, err := json.Marshal(buildCatalog(cfg.CloudFoundries))
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
 		return
@@ -154,10 +170,10 @@ func catalogHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(headerContentType, contentTypeJSON)
 	reader := bytes.NewReader(js)
-	http.ServeContent(w, r, "xxx", dat.GetLastModified(), reader)
+	http.ServeContent(w, r, "xxx", cfg.GetLastModified(), reader)
 }
 
-func buildCatalog(dat *data.CloudFoundriesType) *openapi.Catalog {
+func buildCatalog(cfs map[string]config.CloudFoundryConfigType) *openapi.Catalog {
 	catalog := openapi.Catalog{}
 	var services []openapi.Service
 	var service openapi.Service

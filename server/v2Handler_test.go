@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sklevenz/cf-api-broker/data"
+	"github.com/sklevenz/cf-api-broker/config"
 	"github.com/sklevenz/cf-api-broker/openapi"
 	"github.com/stretchr/testify/assert"
 )
@@ -160,8 +160,8 @@ func TestCatalogHandler(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
 	response := httptest.NewRecorder()
 
-	dat, err := data.NewCloudFoundryMetaData(testConfigPath)
-	assert.NotNil(t, dat)
+	cfg, err := config.NewConfig(testConfigPath)
+	assert.NotNil(t, cfg)
 	assert.Nil(t, err)
 
 	request.Header.Set(headerAPIVersion, "2.2")
@@ -171,6 +171,6 @@ func TestCatalogHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
-	assert.Equal(t, fmt.Sprintf("W/\"%v\"", dat.GetLastModifiedHash()), response.Header().Get(headerETag))
-	assert.Equal(t, fmt.Sprintf("%v", dat.GetLastModified().UTC().Format(http.TimeFormat)), response.Header().Get(headerLastModified))
+	assert.Equal(t, fmt.Sprintf("W/\"%v\"", cfg.GetLastModifiedHash()), response.Header().Get(headerETag))
+	assert.Equal(t, fmt.Sprintf("%v", cfg.GetLastModified().UTC().Format(http.TimeFormat)), response.Header().Get(headerLastModified))
 }
