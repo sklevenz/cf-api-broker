@@ -1,32 +1,32 @@
 ---
-  config:
-    broker:
-      basicauth:
-        username: user
-        password: password
-    cloudfoundries:
-      cf-eu10:
-        apiURL: "https://api.cf.eu10.hana.ondemand.com"
-        uaaURL: "https://uaa.cf.eu10.hana.ondemand.com"
-        username: admin-eu10
-        password: abc
-        labels:
-        - master
-        - aws
-      cf-eu10-001:
-        apiURL: "https://api.cf.eu10-001.hana.ondemand.com"
-        uaaURL: "https://uaa.cf.eu10-001.hana.ondemand.com"
-        username: admin-eu10-001
-        password: abc
-        labels:
-        - scaleout 
-        - aws
-      cf-eu10-002:
-        apiURL: "https://api.cf.eu10-002.hana.ondemand.com"
-        uaaURL: "https://uaa.cf.eu10-002.hana.ondemand.com"
-        username: admin-eu10-002
-        password: abc
-        labels:
-        - scaleout
-        - aws
+  server:
+    basicauth:
+      username: username
+      password: password
+      
+  cloudfoundries:
+    cf-eu10:
+      apiURL: "https://api.cf.eu10.hana.ondemand.com"
+      uaaURL: "https://uaa.cf.eu10.hana.ondemand.com"
+      username: admin-eu10
+      password: abc
+      labels:
+      - master
+      - aws
+    cf-eu10-001:
+      apiURL: "https://api.cf.eu10-001.hana.ondemand.com"
+      uaaURL: "https://uaa.cf.eu10-001.hana.ondemand.com"
+      username: admin-eu10-001
+      password: abc
+      labels:
+      - scaleout 
+      - aws
+    cf-eu10-002:
+      apiURL: "https://api.cf.eu10-002.hana.ondemand.com"
+      uaaURL: "https://uaa.cf.eu10-002.hana.ondemand.com"
+      username: admin-eu10-002
+      password: abc
+      labels:
+      - scaleout
+      - aws
   

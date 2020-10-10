@@ -12,44 +12,35 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// ConfigurationType Configuration data
-type ConfigurationType struct {
-	Broker         BrokerConfigType `yaml:"broker"`
-	CloudFoundries map[string]CloudFoundryConfigType
-}
-
-// BrokerConfigType Store broker config data
-type BrokerConfigType struct {
-	BasicAuth BasicAuthType `yaml:"basicauth"`
-}
-
-// BasicAuthType Store basic auth data
-type BasicAuthType struct {
-	UserName string `yaml:"username"`
-	Password string `yaml:"password"`
-}
-
-// CloudFoundryConfigType Defines meta data of a single cloud foundry instance
-type CloudFoundryConfigType struct {
-	APIURL   string   `yaml:"apiURL"`
-	UAAURL   string   `yaml:"uaaURL"`
-	UserName string   `yaml:"username"`
-	Password string   `yaml:"password"`
-	Labels   []string `yaml:"labels"`
+// Configuration struct for server configuration
+type Configuration struct {
+	Server struct {
+		BasicAuth struct {
+			UserName string `yaml:"username"`
+			Passowrd string `yaml:"password"`
+		} `yaml:"basicauth"`
+	} `yaml:"server"`
+	CloudFoundries map[string]struct {
+		APIURL   string   `yaml:"apiURL"`
+		UAAURL   string   `yaml:"uaaURL"`
+		UserName string   `yaml:"username"`
+		Password string   `yaml:"password"`
+		Labels   []string `yaml:"labels"`
+	} `yaml:"cloudfoundries"`
 }
 
 var (
 	mux              sync.Mutex
 	lastModifiedHash uint32    = 0
 	lastModified     time.Time = time.Time{}
-	cachedConfig               = &ConfigurationType{}
+	cachedConfig               = &Configuration{}
 	cachedConfigPath string    = ""
 )
 
-// NewConfig Read cloud foundry data structure from YAML file.
-// The data is cached and file is read only in case of content was modified. Date will
+// New Read cloud foundry data structure from YAML file.
+// The data is cached and file is read only in case of content was modified. Config will
 // be returned as a deep copy to avoid synchronization issues.
-func NewConfig(configPath string) (*ConfigurationType, error) {
+func New(configPath string) (*Configuration, error) {
 
 	mux.Lock()
 	defer mux.Unlock()
@@ -109,13 +100,13 @@ func hash(s string) uint32 {
 	return h.Sum32()
 }
 
-func deepCopy(cfg1 *ConfigurationType) (*ConfigurationType, error) {
+func deepCopy(cfg1 *Configuration) (*Configuration, error) {
 	data, err := json.Marshal(cfg1)
 	if err != nil {
 		return nil, err
 	}
 
-	cfg2 := ConfigurationType{}
+	cfg2 := Configuration{}
 	if err := json.Unmarshal(data, &cfg2); err != nil {
 		return nil, err
 	}
@@ -123,11 +114,11 @@ func deepCopy(cfg1 *ConfigurationType) (*ConfigurationType, error) {
 }
 
 // GetLastModifiedHash returns a hash that can be used to build an ETag
-func (*ConfigurationType) GetLastModifiedHash() uint32 {
+func (*Configuration) GetLastModifiedHash() uint32 {
 	return lastModifiedHash
 }
 
 // GetLastModified returns last modified timestamp for setting Last-Modified header
-func (*ConfigurationType) GetLastModified() time.Time {
+func (*Configuration) GetLastModified() time.Time {
 	return lastModified
 }

@@ -32,7 +32,6 @@ func NewRouter(staticDir string, cfgPath string) http.Handler {
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
 	v2Router.Use(apiVersionHandler)
-	v2Router.Use(basicAuthHandler)
 	v2Router.Use(requestIdentityLogHandler)
 	v2Router.Use(originatingIdentityLogHandler)
 	v2Router.Use(etagHandler)
@@ -43,6 +42,7 @@ func NewRouter(staticDir string, cfgPath string) http.Handler {
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).Name("static").Methods(http.MethodGet)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir))).Name("home").Methods(http.MethodGet)
 
+	router.Use(basicAuthHandler)
 	router.Use(logHandler)
 
 	return router

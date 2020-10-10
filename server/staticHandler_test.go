@@ -13,8 +13,28 @@ const (
 	testConfigPath string = "./../config/config.yaml"
 )
 
+func TestBasicAuth403(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	response := httptest.NewRecorder()
+
+	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
+}
+
+func TestBasicAuthOk(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	request.SetBasicAuth("username", "password")
+	response := httptest.NewRecorder()
+
+	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+}
+
 func TestHomeHandler(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
@@ -26,6 +46,7 @@ func TestHomeHandler(t *testing.T) {
 
 func TestStaticCSS(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/static/css/broker.css", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
@@ -37,6 +58,7 @@ func TestStaticCSS(t *testing.T) {
 
 func TestVersion(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/version/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
@@ -47,6 +69,7 @@ func TestVersion(t *testing.T) {
 }
 func TestHealth(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/health/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)

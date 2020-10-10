@@ -17,6 +17,7 @@ import (
 
 func TestNoApiVersion(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
@@ -27,6 +28,7 @@ func TestNoApiVersion(t *testing.T) {
 
 func TestWrongApiVersionFormat(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "abc")
@@ -38,6 +40,7 @@ func TestWrongApiVersionFormat(t *testing.T) {
 
 func TestWrongApiVersion(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "1.2")
@@ -49,6 +52,7 @@ func TestWrongApiVersion(t *testing.T) {
 
 func TestCorrectApiVersion(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "2.2")
@@ -60,6 +64,7 @@ func TestCorrectApiVersion(t *testing.T) {
 
 func TestRedirect(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "2.2")
@@ -71,6 +76,7 @@ func TestRedirect(t *testing.T) {
 
 func TestAPIOriginatingIdentity(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -94,6 +100,7 @@ func TestAPIOriginatingIdentity(t *testing.T) {
 
 func TestAPIRequestIdentity(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +123,7 @@ func TestAPIRequestIdentity(t *testing.T) {
 func TestHttpErrorHandler(t *testing.T) {
 
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +140,7 @@ func TestHttpErrorHandler(t *testing.T) {
 
 func TestOSBErrorHandler(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
 	err := &openapi.Error{
@@ -158,16 +167,17 @@ func TestOSBErrorHandler(t *testing.T) {
 
 func TestCatalogHandler(t *testing.T) {
 	request, _ := http.NewRequest(http.MethodGet, "/v2/catalog/", nil)
+	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
-	cfg, err := config.NewConfig(testConfigPath)
+	cfg, err := config.New(testConfigPath)
 	assert.NotNil(t, cfg)
 	assert.Nil(t, err)
 
 	request.Header.Set(headerAPIVersion, "2.2")
 	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
 
-	assert.Contains(t, response.Body.String(), "cloudfoundry api endpoint service")
+	assert.Contains(t, response.Body.String(), "Cloud Foundry API Service")
 
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))

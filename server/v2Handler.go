@@ -125,7 +125,7 @@ func apiVersionHandler(next http.Handler) http.Handler {
 func etagHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		cfg, err := config.NewConfig(configPath)
+		cfg, err := config.New(configPath)
 
 		if err != nil {
 			handleHTTPError(w, http.StatusInternalServerError, err)
@@ -138,31 +138,15 @@ func etagHandler(next http.Handler) http.Handler {
 	})
 }
 
-func basicAuthHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		cfg, err := config.NewConfig(configPath)
-
-		if err != nil {
-			handleHTTPError(w, http.StatusInternalServerError, err)
-			return
-		}
-		log.Printf("%v", cfg)
-		// handle basic auth
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func catalogHandler(w http.ResponseWriter, r *http.Request) {
-	cfg, err := config.NewConfig(configPath)
+	cfg, err := config.New(configPath)
 
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	js, err := json.Marshal(buildCatalog(cfg.CloudFoundries))
+	js, err := json.Marshal(buildCatalog())
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
 		return
@@ -173,15 +157,15 @@ func catalogHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, "xxx", cfg.GetLastModified(), reader)
 }
 
-func buildCatalog(cfs map[string]config.CloudFoundryConfigType) *openapi.Catalog {
+func buildCatalog() *openapi.Catalog {
 	catalog := openapi.Catalog{}
 	var services []openapi.Service
 	var service openapi.Service
 
 	service.Id = "cf"
 	service.Name = "cloudfoundry"
-	service.Description = "cloudfoundry api endpoint service"
-	service.Tags = append(service.Tags, "cf", "api", "cloudfoundry", "cloudcontroler")
+	service.Description = "Cloud Foundry API Service"
+	service.Tags = append(service.Tags, "cf", "api", "cloudfoundry", "cloud controler")
 	service.Requires = []string{}
 	service.Bindable = true
 	service.InstancesRetrievable = true
