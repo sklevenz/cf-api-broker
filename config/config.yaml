@@ -11,7 +11,7 @@
       uaaURL: "https://uaa.cf.eu10.hana.ondemand.com"
       username: admin-eu10
       password: abc
-      labels:
+      labels: 
       - master
       - aws
     cf-eu10-001:

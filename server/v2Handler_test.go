@@ -182,11 +182,30 @@ func TestCatalogHandler(t *testing.T) {
 }
 
 func TestCreateServiceHandler(t *testing.T) {
-	request, _ := http.NewRequest(http.MethodPut, "/v2/service_instances/abc/", nil)
-	request.SetBasicAuth("username", "password")
-	response := httptest.NewRecorder()
 
+	var jsonStr = []byte(`
+		{
+			"service_id": "cf",
+			"plan_id": "cloudcontroller",
+			"context": {
+				"platform": "cloudfoundry",
+				"some_field": "some-contextual-data"
+			},
+			"parameters": {
+				"parameter1": 1,
+				"parameter2": "foo"
+			},
+			"maintenance_info": {
+				"version": "2.1.1+abcdef"
+			}
+		}`)
+
+	request, _ := http.NewRequest(http.MethodPut, "/v2/service_instances/abc/", bytes.NewBuffer(jsonStr))
+	request.SetBasicAuth("username", "password")
 	request.Header.Set(headerAPIVersion, "2.2")
+	request.Header.Set(headerContentType, contentTypeJSON)
+
+	response := httptest.NewRecorder()
 	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)

@@ -189,8 +189,15 @@ func buildCatalog() *openapi.Catalog {
 }
 
 func createServiceHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	js, err := json.Marshal(createServiceInstance(vars))
+	var provisionData = &openapi.ServiceInstanceProvisionRequest{}
+	err := json.NewDecoder(r.Body).Decode(&provisionData)
+	if err != nil {
+		handleHTTPError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	instanceID := mux.Vars(r)["instance_id"]
+	js, err := json.Marshal(createServiceInstance(instanceID, provisionData))
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
 		return
@@ -202,7 +209,10 @@ func createServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func createServiceInstance(vars map[string]string) *openapi.Service {
+func createServiceInstance(instanceID string, provisionData *openapi.ServiceInstanceProvisionRequest) *openapi.ServiceInstanceProvisionResponse {
+	service := &openapi.ServiceInstanceProvisionResponse{
+		Metadata: openapi.ServiceInstanceMetadata{},
+	}
 
-	return nil
+	return service
 }
