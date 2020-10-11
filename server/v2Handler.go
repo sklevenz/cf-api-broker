@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/sklevenz/cf-api-broker/config"
 	"github.com/sklevenz/cf-api-broker/openapi"
 )
@@ -125,27 +126,13 @@ func apiVersionHandler(next http.Handler) http.Handler {
 func etagHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		cfg, err := config.New(configPath)
-
-		if err != nil {
-			handleHTTPError(w, http.StatusInternalServerError, err)
-			return
-		}
-
-		w.Header().Set(headerETag, fmt.Sprintf("W/\"%v\"", cfg.GetLastModifiedHash()))
+		w.Header().Set(headerETag, fmt.Sprintf("W/\"%v\"", config.GetLastModifiedHash()))
 
 		next.ServeHTTP(w, r)
 	})
 }
 
 func catalogHandler(w http.ResponseWriter, r *http.Request) {
-	cfg, err := config.New(configPath)
-
-	if err != nil {
-		handleHTTPError(w, http.StatusInternalServerError, err)
-		return
-	}
-
 	js, err := json.Marshal(buildCatalog())
 	if err != nil {
 		handleHTTPError(w, http.StatusInternalServerError, err)
@@ -154,7 +141,7 @@ func catalogHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(headerContentType, contentTypeJSON)
 	reader := bytes.NewReader(js)
-	http.ServeContent(w, r, "xxx", cfg.GetLastModified(), reader)
+	http.ServeContent(w, r, "xxx", config.GetLastModified(), reader)
 }
 
 func buildCatalog() *openapi.Catalog {
@@ -180,7 +167,7 @@ func buildCatalog() *openapi.Catalog {
 	plan := openapi.Plan{}
 	plan.Id = "cloudcontroller"
 	plan.Name = "cloudcontroller"
-	plan.Description = "cloud foundry api instance"
+	plan.Description = "Cloud Controler API"
 	plan.Metadata = make(map[string]interface{})
 	plan.Metadata["labels"] = []string{}
 	plan.Free = true
@@ -199,4 +186,23 @@ func buildCatalog() *openapi.Catalog {
 	log.Printf("Catalog: %v", catalog)
 
 	return &catalog
+}
+
+func createServiceHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	js, err := json.Marshal(createServiceInstance(vars))
+	if err != nil {
+		handleHTTPError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	w.Header().Set(headerContentType, contentTypeJSON)
+	reader := bytes.NewReader(js)
+	http.ServeContent(w, r, "xxx", config.GetLastModified(), reader)
+
+}
+
+func createServiceInstance(vars map[string]string) *openapi.Service {
+
+	return nil
 }

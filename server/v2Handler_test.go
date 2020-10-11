@@ -20,7 +20,7 @@ func TestNoApiVersion(t *testing.T) {
 	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
 	assert.Equal(t, http.StatusPreconditionFailed, response.Result().StatusCode)
@@ -32,7 +32,7 @@ func TestWrongApiVersionFormat(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "abc")
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
 	assert.Equal(t, http.StatusPreconditionFailed, response.Result().StatusCode)
@@ -44,7 +44,7 @@ func TestWrongApiVersion(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "1.2")
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
 	assert.Equal(t, http.StatusPreconditionFailed, response.Result().StatusCode)
@@ -56,7 +56,7 @@ func TestCorrectApiVersion(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "2.2")
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
@@ -68,7 +68,7 @@ func TestRedirect(t *testing.T) {
 	response := httptest.NewRecorder()
 
 	request.Header.Set(headerAPIVersion, "2.2")
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Equal(t, contentTypeHTML, response.Header().Get(headerContentType))
 	assert.Equal(t, http.StatusMovedPermanently, response.Result().StatusCode)
@@ -170,17 +170,24 @@ func TestCatalogHandler(t *testing.T) {
 	request.SetBasicAuth("username", "password")
 	response := httptest.NewRecorder()
 
-	cfg, err := config.New(testConfigPath)
-	assert.NotNil(t, cfg)
-	assert.Nil(t, err)
-
 	request.Header.Set(headerAPIVersion, "2.2")
-	NewRouter(staticDir, testConfigPath).ServeHTTP(response, request)
+	NewRouter(staticDir).ServeHTTP(response, request)
 
 	assert.Contains(t, response.Body.String(), "Cloud Foundry API Service")
 
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 	assert.Equal(t, contentTypeJSON, response.Header().Get(headerContentType))
-	assert.Equal(t, fmt.Sprintf("W/\"%v\"", cfg.GetLastModifiedHash()), response.Header().Get(headerETag))
-	assert.Equal(t, fmt.Sprintf("%v", cfg.GetLastModified().UTC().Format(http.TimeFormat)), response.Header().Get(headerLastModified))
+	assert.Equal(t, fmt.Sprintf("W/\"%v\"", config.GetLastModifiedHash()), response.Header().Get(headerETag))
+	assert.Equal(t, fmt.Sprintf("%v", config.GetLastModified().UTC().Format(http.TimeFormat)), response.Header().Get(headerLastModified))
+}
+
+func TestCreateServiceHandler(t *testing.T) {
+	request, _ := http.NewRequest(http.MethodPut, "/v2/service_instances/abc/", nil)
+	request.SetBasicAuth("username", "password")
+	response := httptest.NewRecorder()
+
+	request.Header.Set(headerAPIVersion, "2.2")
+	NewRouter(staticDir).ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 }

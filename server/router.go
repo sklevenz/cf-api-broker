@@ -19,15 +19,9 @@ const (
 	contentTypeJSON string = "application/json; charset=utf-8"
 )
 
-var (
-	configPath string
-)
-
 // NewRouter implements static routes for serving a home page and the routes
 // defined by OSB v2.0 API
-func NewRouter(staticDir string, cfgPath string) http.Handler {
-	configPath = cfgPath
-
+func NewRouter(staticDir string) http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
 
 	v2Router := router.PathPrefix("/v2/").Subrouter()
@@ -36,13 +30,15 @@ func NewRouter(staticDir string, cfgPath string) http.Handler {
 	v2Router.Use(originatingIdentityLogHandler)
 	v2Router.Use(etagHandler)
 	v2Router.HandleFunc("/catalog/", catalogHandler).Name("v2.catalog").Methods(http.MethodGet)
+	v2Router.HandleFunc("/service_instances/{instance_id}/", createServiceHandler).Name("v2.service_instances").Methods(http.MethodPut)
 
 	router.HandleFunc("/version/", versionHandler).Name("version").Methods(http.MethodGet)
 	router.HandleFunc("/health/", healthHandler).Name("health").Methods(http.MethodGet)
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).Name("static").Methods(http.MethodGet)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir))).Name("home").Methods(http.MethodGet)
 
-	router.Use(basicAuthHandler)
+	router.Use(authHandler)
+
 	router.Use(logHandler)
 
 	return router

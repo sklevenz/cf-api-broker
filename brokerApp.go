@@ -6,11 +6,13 @@ import (
 
 	"flag"
 
+	"github.com/sklevenz/cf-api-broker/config"
 	"github.com/sklevenz/cf-api-broker/server"
 )
 
 const (
 	staticDir string = "./static"
+	port             = 5000
 )
 
 var (
@@ -28,15 +30,19 @@ func init() {
 }
 
 func main() {
-	const port = 5000
-	flag.Parse()
-	log.Printf("start application on port %v", port)
 
+	flag.Parse()
+
+	log.Printf("start application on port %v", port)
 	log.Printf("version %v", Version)
 	log.Printf("commit %v", Commit)
 
+	if err := config.Read(configPath); err != nil {
+		log.Fatalf("could not read configuration %v", err)
+	}
+
 	server.SetBuildVersion(Version, Commit)
-	brokerServer := server.NewRouter(staticDir, configPath)
+	brokerServer := server.NewRouter(staticDir)
 
 	log.Printf("call server: http://localhost:%v", port)
 

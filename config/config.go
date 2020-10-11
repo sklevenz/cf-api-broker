@@ -1,23 +1,27 @@
 package config
 
 import (
-	"encoding/json"
 	"hash/fnv"
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	// AuthTypeBasic basic authentification
+	AuthTypeBasic string = "basic"
+)
+
 // Configuration struct for server configuration
 type Configuration struct {
 	Server struct {
+		AuthType  string `yaml:"authtype"`
 		BasicAuth struct {
 			UserName string `yaml:"username"`
-			Passowrd string `yaml:"password"`
+			Password string `yaml:"password"`
 		} `yaml:"basicauth"`
 	} `yaml:"server"`
 	CloudFoundries map[string]struct {
@@ -30,68 +34,38 @@ type Configuration struct {
 }
 
 var (
-	mux              sync.Mutex
+	cfg                        = &Configuration{}
 	lastModifiedHash uint32    = 0
 	lastModified     time.Time = time.Time{}
-	cachedConfig               = &Configuration{}
-	cachedConfigPath string    = ""
 )
 
-// New Read cloud foundry data structure from YAML file.
-// The data is cached and file is read only in case of content was modified. Config will
-// be returned as a deep copy to avoid synchronization issues.
-func New(configPath string) (*Configuration, error) {
+// Read cloud foundry data structure from YAML file.
+func Read(configPath string) error {
 
-	mux.Lock()
-	defer mux.Unlock()
+	log.Printf("Reading file %v", configPath)
+	dat, err := ioutil.ReadFile(configPath)
 
-	if hasChanged(configPath) {
-		log.Printf("Reading file and update cache %v", configPath)
-		dat, err := ioutil.ReadFile(configPath)
-
-		if err != nil {
-			log.Printf("ERROR while reading config file: %v", err)
-			return nil, err
-		}
-
-		file, err := os.Stat(configPath)
-		if err != nil {
-			log.Printf("Error while reading last modified date: %v", err)
-			lastModifiedHash = 0
-		}
-
-		lastModified = file.ModTime()
-		lastModifiedHash = hash(file.ModTime().String())
-
-		if err := yaml.Unmarshal(dat, &cachedConfig); err != nil {
-			log.Printf("Error while parsing YAML file %v: %v", configPath, err)
-			return nil, err
-		}
-		log.Println(cachedConfig)
-	} else {
-		log.Printf("Using cached data of file %v", configPath)
-	}
-
-	copiedConfig, err := deepCopy(cachedConfig)
-
-	return copiedConfig, err
-}
-
-func hasChanged(configPath string) bool {
-	if configPath != cachedConfigPath {
-		cachedConfigPath = configPath
-		return true
+	if err != nil {
+		log.Printf("ERROR while reading config file: %v", err)
+		return err
 	}
 
 	file, err := os.Stat(configPath)
 	if err != nil {
 		log.Printf("Error while reading last modified date: %v", err)
-		lastModifiedHash = 0
-		return true
+		return err
 	}
-	currentHash := hash(file.ModTime().String())
 
-	return currentHash != lastModifiedHash
+	lastModified = file.ModTime()
+	lastModifiedHash = hash(file.ModTime().String())
+
+	if err := yaml.Unmarshal(dat, &cfg); err != nil {
+		log.Printf("Error while parsing YAML file %v: %v", configPath, err)
+		return err
+	}
+	log.Println(cfg)
+
+	return nil
 }
 
 func hash(s string) uint32 {
@@ -100,25 +74,17 @@ func hash(s string) uint32 {
 	return h.Sum32()
 }
 
-func deepCopy(cfg1 *Configuration) (*Configuration, error) {
-	data, err := json.Marshal(cfg1)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg2 := Configuration{}
-	if err := json.Unmarshal(data, &cfg2); err != nil {
-		return nil, err
-	}
-	return &cfg2, nil
-}
-
 // GetLastModifiedHash returns a hash that can be used to build an ETag
-func (*Configuration) GetLastModifiedHash() uint32 {
+func GetLastModifiedHash() uint32 {
 	return lastModifiedHash
 }
 
 // GetLastModified returns last modified timestamp for setting Last-Modified header
-func (*Configuration) GetLastModified() time.Time {
+func GetLastModified() time.Time {
 	return lastModified
+}
+
+// Get returns configuration object
+func Get() Configuration {
+	return *cfg
 }

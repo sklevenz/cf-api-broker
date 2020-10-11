@@ -1,5 +1,6 @@
 ---
   server:
+    authtype: basic
     basicauth:
       username: username
       password: password
