@@ -18,4 +18,6 @@ type ServiceInstanceResource struct {
 	DashboardUrl string `json:"dashboard_url,omitempty"`
 
 	Parameters map[string]interface{} `json:"parameters,omitempty"`
+
+	MaintenanceInfo MaintenanceInfo `json:"maintenance_info,omitempty"`
 }

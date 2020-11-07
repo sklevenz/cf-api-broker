@@ -3,26 +3,30 @@
 import os
 import argparse
 
-def test():
-    print ("-- vet broker")
+def test(verbose):
+    print ("-- vet & test broker")
     os.system("go vet ./...")
-    print ("-- test broker")
-    os.system("go test ./...")
+    if verbose:
+      os.system("go test ./... -v")
+    else:    
+      os.system("go test ./...")
 
-def build():
+def build(verbose):
     print ("-- clean broker")
     os.system("go clean -r -cache -testcache -modcache")
     print ("-- fmt broker")
     os.system("go fmt ./...")
     print("-- build broker")
-    print("go build " + ldflags() + " -v ./...")
-    os.system("go build " + ldflags() + " -v ./...")
+    flg = ldflags()
+    os.system("go build " + flg + "-v ./...")
+    if verbose:
+      print (flg)
 
-def run():
+def run(verbose):
     print ("-- run broker")
     os.system("go run  " + ldflags() + " brokerApp.go")
 
-def generate():
+def generate(verbose):
     print ("-- generate broker")
 
     os.system("rm -rf ./gen ./openapi")
@@ -33,9 +37,10 @@ def generate():
     os.system("cp ./gen/go/model_* ./openapi")
     os.system("go fmt ./openapi")
 
-def release():
+def release(verbose):
     print ("-- release broker")
     print ("-- tbd")
+    print ("-- verbose:", verbose)
 
 def dispatcher(cmd):
    dispatcher={
@@ -54,7 +59,8 @@ def ldflags():
       commitStream = os.popen('git rev-parse HEAD')
       commit = commitStream.read()
     else:
-      commit = dirty
+      commit = dirty.strip()
+
 
     # TDOD: version (consider goreleaser) 
     return F"-ldflags=\"-X 'main.Version=dev' -X 'main.Commit={commit}'\""
@@ -63,12 +69,14 @@ def main():
   parser = argparse.ArgumentParser(description="Make tool for cloud foundry api broker", epilog="(c) 2020 by KLÄFF-Soft)")
   parser.add_help=True
   parser.add_argument("command", nargs='?', choices=['build', 'run', 'test', 'generate', 'release'], help="commands to execute")
- 
+  parser.add_argument("-v", action="store_true", help="verbose output")
+
   args = parser.parse_args()
+
   func = dispatcher(args.command)
 
   if func != None:
-    func()
+    func(args.v)
   else: 
     parser.print_usage()
 
