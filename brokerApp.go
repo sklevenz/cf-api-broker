@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"flag"
+	"os"
 
 	"github.com/sklevenz/cf-api-broker/config"
 	"github.com/sklevenz/cf-api-broker/server"
@@ -12,7 +13,7 @@ import (
 
 const (
 	staticDir string = "./static"
-	port             = 5000
+	defaultPort             = "5000"
 )
 
 var (
@@ -33,6 +34,12 @@ func main() {
 
 	flag.Parse()
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+
 	log.Printf("start application on port %v", port)
 	log.Printf("version %v", Version)
 	log.Printf("commit %v", Commit)
@@ -46,7 +53,7 @@ func main() {
 
 	log.Printf("call server: http://localhost:%v", port)
 
-	if err := http.ListenAndServe(":5000", brokerServer); err != nil {
-		log.Fatalf("could not listen on port 5000 %v", err)
+	if err := http.ListenAndServe(":"+port, brokerServer); err != nil {
+		log.Fatalf("could not listen on port %v: %v", port, err)
 	}
 }
