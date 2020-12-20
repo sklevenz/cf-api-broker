@@ -20,4 +20,6 @@ type ServiceInstanceResource struct {
 	Parameters map[string]interface{} `json:"parameters,omitempty"`
 
 	MaintenanceInfo MaintenanceInfo `json:"maintenance_info,omitempty"`
+
+	Metadata ServiceInstanceMetadata `json:"metadata,omitempty"`
 }
